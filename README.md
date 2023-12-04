@@ -16,7 +16,7 @@ The project is organized by day, and each day has its own Rust module. Below is 
 To run the solutions locally:
 
 1. Install Rust: [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install)
-2. Clone this repository: `git clone https://github.com/yourusername/advent-of-code-rust.git`
+2. Clone this repository.
 3. Navigate to a specific day: `cd day_1` or `cd day_2`
 4. Run the solution: `cargo run`
 
