@@ -4,6 +4,8 @@ use regex::Regex;
 use std::ops::Range;
 
 fn main() {
+    let start = std::time::Instant::now();
+
     let input = match fs::read_to_string("input.txt") {
         Ok(content) => content,
         Err(_) => {
@@ -44,13 +46,19 @@ fn main() {
         current.sort_by_key(|range| range.start);
         current = merge_ranges(current);
 
-        println!("From {} to {} finished with ranged in count {}", from, to, current.len());
+        println!("From {} to {} finished. Count of current ranges: {}", from, to, current.len());
         println!("");
     }
     
     locations.push(current.iter().map(|r| r.start).min().unwrap());
 
     println!("Response: {}", locations.iter().min().unwrap());
+
+    let elapsed = start.elapsed();
+    let seconds = elapsed.as_secs();
+    let millis = elapsed.subsec_millis();
+
+    println!("Time: {:02}s {:03}ms", seconds, millis);
 }
 
 fn merge_ranges(current : Vec<Range<u64>>) -> Vec<Range<u64>> {
