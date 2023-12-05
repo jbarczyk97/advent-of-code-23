@@ -1,6 +1,6 @@
 use std::fs;
+use std::collections::HashMap;
 
-// NOT WORKING FOR NOW :D 
 fn main() {
     let input = match fs::read_to_string("input.txt") {
         Ok(content) => content,
@@ -11,72 +11,91 @@ fn main() {
     };
 
     let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
-    let mut sum: usize = 0;
+    let mut start :usize = 0;
+    let mut end :usize = 0;
+    let mut start_set : bool = false;
+
+    let mut dic: HashMap<(usize, usize), Vec<usize>> = HashMap::new();
 
     for (row_idx, row) in grid.iter().enumerate() {
         for (clm_idx, clm) in row.iter().enumerate() {
-            if *clm == '*' {
-                let numbers = get_numbers(&grid, row_idx, clm_idx);
-                println!("{:?}", numbers);
-                if numbers.len() == 2 {
-                    sum += numbers[0] * numbers[1];
+            if clm.is_digit(10) {
+                end = clm_idx;
+                if !start_set {
+                    start = clm_idx;
+                    start_set = true;
                 }
+            }
+            else {
+                if start_set {
+                    match check_symbols(&grid, row_idx, start, end) {
+                        Some((r, c)) => {
+                            let current = grid[row_idx][start..(end + 1)].iter().collect::<String>().parse::<usize>().unwrap_or(0);
+                            let vec = dic.entry((r, c)).or_insert(Vec::new());
+                            vec.push(current);
+                        },
+                        None => {}
+                    }
+                }
+
+                start = 0;
+                end = 0;
+                start_set = false;
+            }
+        }
+
+        if start_set {
+            match check_symbols(&grid, row_idx, start, end) {
+                Some((r, c)) => {
+                    let current = grid[row_idx][start..(end + 1)].iter().collect::<String>().parse::<usize>().unwrap_or(0);
+                    let vec = dic.entry((r,c)).or_insert(Vec::new());
+                    vec.push(current);
+                },
+                None => {}
             }
         }
    }
 
-   println!("{}", sum);
+   let result : usize = dic
+    .iter()
+    .filter(|(_, value)| value.len() == 2)
+    .map(|(_, value)|  value[0] * value[1])
+    .sum();
+
+    println!("{}", result);
 }
 
-fn get_numbers(grid : &Vec<Vec<char>>, row : usize, column : usize) -> Vec<usize> {
-    let mut result : Vec<usize> = Vec::new();
+fn check_symbols(grid : &Vec<Vec<char>>, row : usize, start : usize, end : usize) -> Option<(usize, usize)> {
+    if !grid[row][start].is_digit(10) {
+        return None
+    }
 
-    let start_idx = column as i32 - 1;
-    let end_idx = column as i32+ 1;
-    let idx : usize = 0;
-    let start_number : usize = 0;
-    let end_number : usize = 0;
-
-    println!("Row {}. Column {}. Text: {:?}", row, column, grid[row]);
-
+    let start_idx = start as i32 - 1;
+    let end_idx = end as i32+ 1;
     for i in start_idx..=end_idx {
-        if is_digit_in_place(&grid, row as i32 - 1, i) {
-            //return true
+        if check_symbol(&grid, row as i32 - 1, i) {
+            return Some((row - 1, i as usize))
         }
     }
 
     for i in start_idx..=end_idx {
-        if is_digit_in_place(&grid, row as i32 + 1  as i32, i) {
-            //return true
+        if check_symbol(&grid, row as i32 + 1  as i32, i) {
+            return Some((row + 1, i as usize))
         }
     }
 
-    if is_digit_in_place(&grid, row as i32 , column as i32 - 1) {
-        for i in (0..=(column - 1)).rev() {
-            if(i == 0 || !grid[row][i].is_digit(10)) {
-                let text = grid[row][(i+1)..=(column - 1)].iter().collect::<String>();
-                println!("{}", text);
-                result.push(text.parse::<usize>().unwrap_or(0));
-                break;
-            }
-        }
+    if check_symbol(&grid, row as i32 , start as i32 - 1) {
+        return Some((row, start - 1))
     }
 
-    if is_digit_in_place(&grid, row  as i32, column as i32 + 1) {
-        for i in ((column + 1)..=grid[row].len()).rev() {
-            if(i == grid[row].len() || grid[row][i].is_digit(10)) {
-                let text = grid[row][(column + 1)..=(i-1)].iter().collect::<String>();
-                println!("{}", text);
-                result.push(text.parse::<usize>().unwrap_or(0));
-                break;
-            }
-        }
+    if check_symbol(&grid, row  as i32, end as i32 + 1) {
+        return Some((row, end + 1))
     }
 
-    return result
+    return None
 }
 
-fn is_digit_in_place(grid : &Vec<Vec<char>>, row : i32, index : i32) -> bool {
+fn check_symbol(grid : &Vec<Vec<char>>, row : i32, index : i32) -> bool {
     if row < 0 {
         return false
     }
@@ -93,5 +112,5 @@ fn is_digit_in_place(grid : &Vec<Vec<char>>, row : i32, index : i32) -> bool {
         return false
     }
 
-    return grid[row as usize][index as usize].is_digit(10)
+    return grid[row as usize][index as usize] == '*'
 }
