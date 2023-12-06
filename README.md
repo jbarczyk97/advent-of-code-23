@@ -2,6 +2,10 @@
 
 This repository contains my solutions for the Advent of Code challenges for the year 2023, implemented in Rust. It's my first time using Rust, and I'm excited to learn and improve my skills through these coding exercises.
 
+## Join Advent of code!
+
+[You can join here](https://adventofcode.com)
+
 ## Project Structure
 
 The project is organized by day, and each day has its own Rust module. Below is the project structure:
